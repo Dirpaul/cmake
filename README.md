@@ -1,10 +1,13 @@
 # for bash script
 
 - What does it do?
+
 Compile and print result.
 - What kind of files?
+
 .cpp .h .o
 - How it works?
+
 Whether files have been modified or not, 
 checks by the time the file was last modified.
 The compilation result is saved int the file "out"
