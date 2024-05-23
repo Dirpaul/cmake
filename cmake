@@ -1,7 +1,15 @@
 #!/bin/bash
 prev_state="prev_state"
-prev_arr=$(cat $prev_state)
-curr_arr=$(ls --full-time *.cpp *.h *.o | awk '{print$7"|"$9}')
+if [ -f $prev_state ];then
+    prev_arr=$(cat $prev_state)
+else
+    prev_arr=()
+fi
+curr_arr=$(ls --full-time *.cpp *.h *.o &> /dev/null | awk '{print$7"|"$9}')
+if [ "${!curr_arr[@]}" -eq "0" ];then
+    echo "Files missing"
+    exit
+fi
 rslt=-2
 file_work(){ # $1
   case $1 in
