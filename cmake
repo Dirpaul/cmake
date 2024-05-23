@@ -1,12 +1,13 @@
 #!/bin/bash
-prev_state="prev_state"
+out=".out"
+prev_state=".prev_state"
 if [ -f $prev_state ];then
     prev_arr=$(cat $prev_state)
 else
     prev_arr=()
 fi
-curr_arr=$(ls --full-time *.cpp *.h *.o &> /dev/null | awk '{print$7"|"$9}')
-if [ "${!curr_arr[@]}" -eq "0" ];then
+curr_arr=$(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}')
+if [ "${#curr_arr[@]}" -eq "0" ];then
     echo "Files missing"
     exit
 fi
@@ -14,20 +15,20 @@ rslt=-2
 file_work(){ # $1
   case $1 in
     cpp )  
-      g++ -fdiagnostics-color -c ${diff_list[@]} &> out 
+      g++ -fdiagnostics-color -c ${diff_list[@]} &> $out 
       rslt=$?  ;;
     h ) 
-      g++ -fdiagnostics-color -c *.cpp &> out 
+      g++ -fdiagnostics-color -c *.cpp &> $out 
       rslt=$? ;;
     o ) 
-      g++ -fdiagnostics-color *.o &> out
+      g++ -fdiagnostics-color *.o &> $out
       rslt=$?
       if [ $rslt -eq 0 ];then
-        ./a.out > out
+        ./a.out > $out
       fi ;;
     * ) echo "something wrong"
   esac 
-  curr_arr=$(ls --full-time *.cpp *.h *.o | awk '{print$7"|"$9}')
+  curr_arr=$(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}')
 }
 diff(){ #$1 extension
   prev_files=($(echo "${prev_arr[@]}" | grep $1$))
@@ -45,25 +46,27 @@ diff(){ #$1 extension
   fi
 }
 
-if [ "${prev_arr[@]}" != "${curr_arr[@]}" ];then
+if [[ "${prev_arr[@]}" != "${curr_arr[@]}" ]] || [[ ! -f $prev_state ]];then
   prev_files=()
   curr_files=()
   diff h
   if [ $rslt -eq -2 ];then
     diff cpp
     if [ $rslt -eq 0 ];then
-       cat out
+       cat $out
     fi
   elif [ $rslt -eq 1 ];then
-      cat out
+      cat $out
   fi
   diff o
   if [ $rslt -gt 0 ];then
-    cat out
+    cat $out
   fi
 fi
 
-ls --full-time *.cpp *.h *.o | awk '{print$7"|"$9}' > $prev_state
+ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $prev_state
 
-cat out
+if [ -f "$out" ];then
+    cat $out
+fi
 
