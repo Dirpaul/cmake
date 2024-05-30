@@ -1,27 +1,27 @@
 #!/bin/bash
 out=".out"
+warn=".warn"
 prev_state=".prev_state"
-if [ -f $prev_state ];then
-    prev_arr=$(cat $prev_state)
-else
-    prev_arr=()
-fi
-curr_arr=$(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}')
+
+curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
 if [ "${#curr_arr[@]}" -eq "0" ];then
     echo "Files missing"
     exit
+fi
+if [ -f $prev_state ];then
+    prev_arr=$(cat $prev_state)
 fi
 rslt=-2
 file_work(){ # $1
   case $1 in
     cpp )  
-      g++ -fdiagnostics-color -c ${diff_list[@]} &> $out 
+      g++ -fdiagnostics-color -c ${diff_list[@]} &> $warn #$out 
       rslt=$?  ;;
     h ) 
-      g++ -fdiagnostics-color -c *.cpp &> $out 
-      rslt=$? ;;
+      g++ -fdiagnostics-color -c *.cpp &> $warn #$out 
+      rslt=$?;;
     o ) 
-      g++ -fdiagnostics-color *.o &> $out
+      g++ -fdiagnostics-color *.o &> $warn #$out
       rslt=$?
       if [ $rslt -eq 0 ];then
         ./a.out > $out
@@ -53,20 +53,25 @@ if [[ "${prev_arr[@]}" != "${curr_arr[@]}" ]] || [[ ! -f $prev_state ]];then
   if [ $rslt -eq -2 ];then
     diff cpp
     if [ $rslt -eq 0 ];then
-       cat $out
+       diff o
     fi
-  elif [ $rslt -eq 1 ];then
-      cat $out
-  fi
-  diff o
-  if [ $rslt -gt 0 ];then
-    cat $out
+  elif [ $rslt -eq 0 ];then
+      diff o
   fi
 fi
 
 ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $prev_state
 
 if [ -f "$out" ];then
+    echo "-/^\/^START^\/^\/^\/^\/^\/^\/^\/-"
     cat $out
+    echo "-/^\/^END\/^\/^\/^\/^\/^\/^\/^\/-"
+    if [ -f "$warn" ];then
+        if [ $(echo $(ls -l "$warn" | awk '{print$5}')) != 0 ];then
+            echo -e "\n********************************"
+            cat $warn
+            echo "-/^\/^\/^\/^\/^\/^\/^\/^\/^\/^\/-"
+        fi
+    fi
 fi
 
