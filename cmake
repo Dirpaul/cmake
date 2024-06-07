@@ -2,6 +2,8 @@
 out=".out"
 warn=".warn"
 prev_state=".prev_state"
+my_lib="/home/$(whoami)/Documents/cpp/my_lib/" #excluded from the project for now
+arg1=$1
 
 curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
 if [ "${#curr_arr[@]}" -eq "0" ];then
@@ -24,7 +26,11 @@ file_work(){ # $1
       g++ -fdiagnostics-color *.o &> $warn #$out
       rslt=$?
       if [ $rslt -eq 0 ];then
-        ./a.out > $out
+        if [ -z $arg1 ];then
+          ./a.out  > $out 
+        else
+          ./a.out  < $arg1 > $out 
+        fi
       fi ;;
     * ) echo "something wrong"
   esac 
