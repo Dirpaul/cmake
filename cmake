@@ -72,12 +72,12 @@ if [ -f "$out" ];then
     echo "-/^\/^START^\/^\/^\/^\/^\/^\/^\/-"
     cat $out
     echo "-/^\/^END\/^\/^\/^\/^\/^\/^\/^\/-"
-    if [ -f "$warn" ];then
-        if [ $(echo $(ls -l "$warn" | awk '{print$5}')) != 0 ];then
-            echo -e "\n********************************"
-            cat $warn
-            echo "-/^\/^\/^\/^\/^\/^\/^\/^\/^\/^\/-"
-        fi
+fi
+if [ -f "$warn" ];then
+    if [ $(echo $(ls -l "$warn" | awk '{print$5}')) != 0 ];then
+        echo -e "\n********************************"
+        cat $warn
+        echo "-/^\/^\/^\/^\/^\/^\/^\/^\/^\/^\/-"
     fi
 fi
 
