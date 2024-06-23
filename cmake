@@ -2,10 +2,14 @@
 out=".out"
 warn=".warn"
 prev_state=".prev_state"
+curr_state=".curr_state"
+comp_info=".compile_info"
 my_lib="/home/$(whoami)/Documents/cpp/my_lib/" #excluded from the project for now
 arg1=$1
 
-curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
+#curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
+ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $curr_state
+curr_arr=$(cat $curr_state)
 if [ "${#curr_arr[@]}" -eq "0" ];then
     echo "Files missing"
     exit
@@ -32,14 +36,21 @@ file_work(){ # $1
           ./a.out  < $arg1 > $out 
         fi
       fi ;;
-    * ) echo "something wrong"
+    * ) echo "CASE: \"$1\" something wrong"
   esac 
-  curr_arr=$(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}')
+  #curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
+  ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $curr_state
+  curr_arr=$(cat $curr_state)
 }
 diff(){ #$1 extension
-  prev_files=($(echo "${prev_arr[@]}" | grep $1$))
+  prev_files=($(echo "${prev_arr[@]}" | grep $1$)) # | sed 's/ /\n/g'))
   curr_files=($(echo "${curr_arr[@]}" | grep $1$))
   diff_list=($(echo ${prev_files[@]} ${curr_files[@]} | tr ' ' '\n' | sort | uniq -u | awk -F\| '{print$2}' | uniq ))
+  if [ "${#diff_list[@]}" != 0 ];then
+    echo "${diff_list[@]}" >> $comp_info
+  fi
+
+  #echo $(echo "${prev_files[@]}" "${curr_files[@]}" | tr ' ' '\n'|sort | uniq -u | awk -F\| '{print$2}')
   if [ ${#diff_list[@]} -gt 0 ];then
     for i in ${diff_list[@]};do
         if [ ! -f $i ];then
@@ -72,6 +83,14 @@ if [ -f "$out" ];then
     echo "-/^\/^START^\/^\/^\/^\/^\/^\/^\/-"
     cat $out
     echo "-/^\/^END\/^\/^\/^\/^\/^\/^\/^\/-"
+fi
+if [ -f "$comp_info" ];then
+    if [ $(echo $(ls -l "$comp_info" | awk '{print$5}')) != 0 ];then
+        echo "^^compile info^^^^^^^^^^^^^^^^^"
+        cat $comp_info
+        echo "^^compile info end^^^^^^^^^^^^^"
+        rm .compile_info
+    fi
 fi
 if [ -f "$warn" ];then
     if [ $(echo $(ls -l "$warn" | awk '{print$5}')) != 0 ];then
