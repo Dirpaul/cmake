@@ -6,6 +6,7 @@ curr_state=".curr_state"
 comp_info=".compile_info"
 my_lib="/home/$(whoami)/Documents/cpp/my_lib/" #excluded from the project for now
 arg1=$1
+arg2=$2
 
 #curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
 ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $curr_state
@@ -31,9 +32,9 @@ file_work(){ # $1
       rslt=$?
       if [ $rslt -eq 0 ];then
         if [ -z $arg1 ];then
-          ./a.out  > $out 
+          ./a.out $arg2 > $out 
         else
-          ./a.out  < $arg1 > $out 
+          ./a.out $arg2  < $arg1 > $out 
         fi
       fi ;;
     * ) echo "CASE: \"$1\" something wrong"
@@ -41,6 +42,7 @@ file_work(){ # $1
   #curr_arr=($(ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}'))
   ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $curr_state
   curr_arr=$(cat $curr_state)
+
 }
 diff(){ #$1 extension
   prev_files=($(echo "${prev_arr[@]}" | grep $1$)) # | sed 's/ /\n/g'))
@@ -78,6 +80,14 @@ if [[ "${prev_arr[@]}" != "${curr_arr[@]}" ]] || [[ ! -f $prev_state ]];then
 fi
 
 ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $prev_state
+#REMOVE curr and prev if empty START
+if [ $(echo $(ls -lah "$prev_state" 2> /dev/null | awk '{print$5}')) == 0 ];then
+    rm "$prev_state"
+fi
+#if [ $(echo $(ls -lah "$curr_state" 2> /dev/null | awk '{print$5}')) == 0 ];then
+    rm "$curr_state"
+#fi
+#REMOVE curr and prev if empty END
 
 if [ -f "$out" ];then
     echo "-/^\/^START^\/^\/^\/^\/^\/^\/^\/-"
