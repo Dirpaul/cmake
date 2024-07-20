@@ -84,9 +84,7 @@ ls --full-time *.cpp *.h *.o 2> /dev/null | awk '{print$7"|"$9}' > $prev_state
 if [ $(echo $(ls -lah "$prev_state" 2> /dev/null | awk '{print$5}')) == 0 ];then
     rm "$prev_state"
 fi
-#if [ $(echo $(ls -lah "$curr_state" 2> /dev/null | awk '{print$5}')) == 0 ];then
-    rm "$curr_state"
-#fi
+rm "$curr_state"
 #REMOVE curr and prev if empty END
 
 if [ -f "$out" ];then
